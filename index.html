@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rolagens arcanas em Three.js</title>
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body style="margin:0;background:#07060a;height:100vh;width:100vw;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+  <div class="bg3-stage-wrap" id="bg3-stage">
+    <canvas id="bg3-webgl-canvas"></canvas>
+    <div class="bg3-vignette"></div>
+
+    <!-- Preset & Replay Director Bar -->
+    <div class="bg3-director-bar">
+      <button class="bg3-chip active" data-preset="video1" title="Reproduzir a rolagem com vantagem">Vídeo 1 (Vantagem)</button>
+      <button class="bg3-chip" data-preset="video2" title="Reproduzir Vídeo 2 (Emerald Jade)">Vídeo 2 (Jade)</button>
+      <button class="bg3-chip" data-preset="freeplay" title="Modo Livre Interativo">Modo Livre</button>
+      <button class="bg3-chip" id="btn-replay-roll" title="Disparar sequência automática">▶ Replay</button>
+      <button class="bg3-chip" id="btn-slowmo" title="Câmera Lenta 0.35x para inspecionar cada frame">0.35x</button>
+      <button class="bg3-chip" id="btn-mute" aria-label="Som" aria-pressed="true">Som</button>
+      <button class="bg3-chip" id="btn-settings" popovertarget="dice-settings">Ajustes</button>
+    </div>
+
+    <section class="bg3-settings" id="dice-settings" popover aria-labelledby="settings-heading">
+      <header>
+        <h2 id="settings-heading">Ajustes da rolagem</h2>
+        <button type="button" popovertarget="dice-settings" popovertargetaction="hide">Fechar</button>
+      </header>
+      <div class="bg3-settings-fields"></div>
+      <button type="button" id="btn-settings-reset">Restaurar padrão</button>
+    </section>
+
+    <!-- Authentic Synchronized BG3 HUD Layer -->
+    <div class="bg3-hud">
+      <div class="bg3-subtitle" id="hud-subtitle">
+        Teste de Carisma com vantagem
+      </div>
+
+      <div class="bg3-dc-block">
+        <div class="bg3-dc-label" id="hud-dc-label">CLASSE DE<br>DIFICULDADE</div>
+        <div class="bg3-dc-value" id="hud-dc-value">15</div>
+      </div>
+
+      <!-- Clickable 3D Dice & Roll Ribbon Zone -->
+      <div class="bg3-roll-zone" id="hud-roll-zone" title="Clique para rolar os dados">
+        <div class="bg3-roll-prompt" id="hud-roll-prompt">
+          <div class="bg3-roll-ribbon" id="hud-roll-text">Rolar dados</div>
+          <div class="bg3-btn-line">
+            <span class="bg3-pad-badge" id="hud-roll-badge">△</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating Bonus Number rising into d20 alongside 3D Comet -->
+      <div class="bg3-flying-bonus" id="hud-flying-bonus">+1</div>
+
+      <!-- Advantage Indicator inside Bottom Dome Arch -->
+      <div class="bg3-advantage-tag" id="hud-adv-tag">
+        <div id="hud-adv-icon"></div>
+        <div class="bg3-adv-label" id="hud-adv-label">Vantagem</div>
+      </div>
+
+      <!-- SUCESSO / SUCCESS Banner with Symmetrical Golden Curled Filigree -->
+      <div class="bg3-verdict-banner" id="hud-verdict-banner">
+        <svg class="bg3-filigree-svg" viewBox="0 0 280 18">
+          <path d="M55,15 Q95,4 140,13 Q185,4 225,15 M95,14 Q118,2 140,10 Q162,2 185,14"
+            fill="none" stroke="rgba(214,174,108,0.75)" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <div class="bg3-verdict-text" id="hud-verdict-text">SUCESSO</div>
+        <svg class="bg3-filigree-svg" viewBox="0 0 280 18">
+          <path d="M55,3 Q95,14 140,5 Q185,14 225,3 M95,4 Q118,16 140,8 Q162,16 185,4"
+            fill="none" stroke="rgba(214,174,108,0.75)" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <!-- Bonus Cards & Add Bonus -->
+      <div class="bg3-bonus-section" id="hud-bonus-section">
+        <div class="bg3-total-bonus" id="hud-total-bonus">Bônus total +1</div>
+        <div class="bg3-cards-row" id="hud-cards-row"></div>
+
+        <div class="bg3-add-bonus-bar" id="hud-add-bonus" title="Adicionar / alternar Orientação (+1d4)">
+          <svg class="bg3-thin-divider" viewBox="0 0 390 8">
+            <path d="M0,4 L184,4 Q190,1 195,6 Q200,1 206,4 L390,4" fill="none" stroke="rgba(182,144,92,0.55)" stroke-width="1"/>
+          </svg>
+          <div class="bg3-add-bonus-label" id="hud-add-bonus-label">Adicionar bônus</div>
+          <div class="bg3-btn-line" style="width:320px;">
+            <span class="bg3-pad-badge" id="hud-add-bonus-badge">▢</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Continue Prompt after Verdict -->
+      <div class="bg3-continue-bar" id="hud-continue-bar">
+        <svg class="bg3-thin-divider" viewBox="0 0 340 8">
+          <path d="M10,4 L158,4 Q165,1 170,6 Q175,1 182,4 L330,4" fill="none" stroke="rgba(182,144,92,0.52)" stroke-width="1"/>
+        </svg>
+        <div class="bg3-continue-label" id="hud-continue-label">Continuar</div>
+        <div class="bg3-btn-line" style="width:260px;">
+          <span class="bg3-pad-badge" id="hud-continue-badge">✕</span>
+        </div>
+      </div>
+
+      <!-- Footer Controller Legend -->
+      <div class="bg3-footer-legend">
+        <button class="bg3-legend-btn" id="btn-customise-dice" title="Alternar Skin do Dado (Obsidian / Emerald Jade)">
+          <span class="bg3-stick-pill" id="legend-stick-l">L3</span>
+          <span id="legend-text-l">Personalizar dados</span>
+        </button>
+        <button class="bg3-legend-btn" id="btn-toggle-adv" title="Alternar Vantagem (2d20 vs 1d20)">
+          <span class="bg3-stick-pill" id="legend-stick-r">R3</span>
+          <span id="legend-text-r">Dicas (não)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+  <script>
+    (function fitStageToViewport() {
+      const stage = document.getElementById('bg3-stage');
+      function updateFit() {
+        if (!stage) return;
+        const sx = (window.innerWidth - 16) / 540;
+        const sy = (window.innerHeight - 16) / 920;
+        const s = Math.min(1, sx, sy);
+        stage.style.width = '540px';
+        stage.style.flexShrink = '0';
+        stage.style.transform = s < 0.999 ? `scale(${s.toFixed(4)})` : 'none';
+        stage.style.transformOrigin = 'center center';
+      }
+      window.addEventListener('resize', updateFit);
+      updateFit();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,722 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap');
+
+.bg3-stage-wrap,
+.bg3-stage-wrap *,
+.bg3-stage-wrap *::before,
+.bg3-stage-wrap *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+.bg3-stage-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  height: 920px;
+  margin: 0 auto;
+  background: radial-gradient(ellipse at 50% 38%, #15131c 0%, #0b0a0f 62%, #060508 100%);
+  overflow: hidden;
+  border-radius: var(--radius, 14px);
+  font-family: 'Cormorant Garamond', 'Palatino Linotype', Georgia, serif;
+  color: #e8e2d5;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.78);
+}
+
+#bg3-webgl-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+/* Subtle atmospheric dark vignette matching Shorts captures */
+.bg3-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 42%, transparent 48%, rgba(4, 3, 7, 0.68) 100%);
+  z-index: 2;
+}
+
+/* HUD Layer synchronized with Three.js camera projection */
+.bg3-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Director / Preset Switcher Pill Bar */
+.bg3-director-bar {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  gap: 5px;
+  padding: 4px 6px;
+  background: rgba(12, 10, 18, 0.84);
+  border: 1px solid rgba(182, 148, 99, 0.38);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.bg3-chip {
+  background: transparent;
+  color: #c8bca6;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.bg3-chip:hover {
+  color: #fff2d2;
+  border-color: rgba(207, 169, 114, 0.45);
+}
+
+.bg3-chip.active {
+  background: linear-gradient(180deg, rgba(182, 142, 78, 0.35), rgba(112, 82, 38, 0.45));
+  color: #ffe8b3;
+  border-color: #cfa972;
+  box-shadow: 0 0 10px rgba(207, 169, 114, 0.28);
+}
+
+/* Top Dialogue Subtitle (world y = +3.46 -> 46px) */
+.bg3-subtitle {
+  position: absolute;
+  top: 46px;
+  width: 92%;
+  text-align: center;
+  font-size: 20.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #ece8e0;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 2px rgba(0, 0, 0, 0.95);
+  letter-spacing: 0.01em;
+}
+
+.bg3-subtitle em {
+  font-style: italic;
+}
+
+/* Difficulty Class Block inside Top Dome Arch (world y = +1.95 -> 174px) */
+.bg3-dc-block {
+  position: absolute;
+  top: 172px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity calc(0.35s * var(--animation-stretch, 1)) ease, transform calc(0.35s * var(--animation-stretch, 1)) ease;
+}
+
+.bg3-dc-label {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  line-height: 1.14;
+  text-align: center;
+  color: #dad4c8;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.95);
+  text-transform: uppercase;
+}
+
+.bg3-dc-value {
+  margin-top: 7px;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ece8df;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.95);
+  transition: color calc(0.28s * var(--animation-stretch, 1)) ease, text-shadow calc(0.28s * var(--animation-stretch, 1)) ease, transform calc(0.22s * var(--animation-stretch, 1)) ease;
+}
+
+.bg3-dc-value.gold-verdict {
+  color: #c89d62;
+  text-shadow: 0 0 18px rgba(235, 178, 82, 0.65), 0 3px 8px rgba(0, 0, 0, 0.95);
+  transform: scale(1.05);
+}
+
+/* Interactive Click Hitbox over the 3D Dice + Roll Ribbon (d20 spans 304..400px, ribbon 406..462px) */
+.bg3-roll-zone {
+  position: absolute;
+  top: 294px;
+  width: 280px;
+  height: 172px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.bg3-roll-prompt {
+  width: 226px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity calc(0.2s * var(--animation-stretch, 1)) ease, transform calc(0.2s * var(--animation-stretch, 1)) ease;
+}
+
+.bg3-roll-prompt.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+}
+
+.bg3-roll-ribbon {
+  width: 100%;
+  padding: 4px 0 5px;
+  background: linear-gradient(90deg, transparent 0%, rgba(22, 16, 32, 0.82) 24%, rgba(28, 20, 40, 0.9) 50%, rgba(22, 16, 32, 0.82) 76%, transparent 100%);
+  border-top: 1px solid rgba(168, 134, 86, 0.35);
+  text-align: center;
+  font-size: 19.5px;
+  font-weight: 600;
+  color: #e9dec7;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.95);
+}
+
+.bg3-btn-line {
+  position: relative;
+  width: 210px;
+  height: 24px;
+  margin-top: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bg3-btn-line::before,
+.bg3-btn-line::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(186, 148, 94, 0.72));
+}
+
+.bg3-btn-line::after {
+  background: linear-gradient(90deg, rgba(186, 148, 94, 0.72), transparent);
+}
+
+.bg3-pad-badge {
+  position: relative;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #4d4d54, #232328);
+  border: 1.6px solid #b8b8c2;
+  color: #f4f4f8;
+  font-family: sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.88), 0 0 0 2px rgba(10, 8, 14, 0.85);
+}
+
+.bg3-pad-badge::before,
+.bg3-pad-badge::after {
+  content: '‹';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-52%) scaleX(1.35);
+  color: rgba(198, 158, 98, 0.82);
+  font-family: Georgia, serif;
+  font-size: 16px;
+  font-weight: 400;
+  pointer-events: none;
+}
+
+.bg3-pad-badge::before {
+  left: -13px;
+}
+
+.bg3-pad-badge::after {
+  content: '›';
+  right: -13px;
+}
+
+.bg3-pad-badge.xbox-light {
+  background: radial-gradient(circle at 35% 30%, #e2e2e8, #aeb0ba);
+  border-color: #ffffff;
+  color: #15151a;
+}
+
+/* Advantage Badge inside Bottom Dome Arch (world y = -1.60 -> 476px, above -2.48 = 552px) */
+.bg3-advantage-tag {
+  position: absolute;
+  top: 476px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: opacity calc(0.2s * var(--animation-stretch, 1)) ease;
+}
+
+.bg3-advantage-tag.hidden {
+  opacity: 0;
+}
+
+.bg3-adv-label {
+  font-size: 17.5px;
+  font-weight: 600;
+  color: #2ad874;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
+  letter-spacing: 0.02em;
+}
+
+/* SUCESSO / SUCCESS Verdict Banner centered on world y = -1.06 (431px) */
+.bg3-verdict-banner {
+  position: absolute;
+  top: 392px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.96);
+  clip-path: inset(0 50% 0 50%);
+  transition: opacity calc(0.18s * var(--animation-stretch, 1)) ease, transform calc(0.36s * var(--animation-stretch, 1)) cubic-bezier(0.18, 0.88, 0.32, 1.08);
+}
+
+.bg3-verdict-banner.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.bg3-verdict-text {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #dec59b;
+  text-shadow:
+    0 0 22px rgba(255, 196, 86, 0.72),
+    0 3px 10px rgba(0, 0, 0, 0.98);
+  text-transform: uppercase;
+}
+
+.bg3-verdict-banner.failure .bg3-verdict-text {
+  color: #e07a68;
+  text-shadow: 0 0 20px rgba(220, 58, 38, 0.72), 0 3px 10px rgba(0, 0, 0, 0.98);
+}
+
+.bg3-filigree-svg {
+  width: 280px;
+  height: 18px;
+  overflow: visible;
+}
+
+/* Bonus Section right below Bottom Dome Arch (552px -> 562px) */
+.bg3-bonus-section {
+  position: absolute;
+  top: 562px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity calc(0.3s * var(--animation-stretch, 1)) ease, transform calc(0.3s * var(--animation-stretch, 1)) ease;
+}
+
+.bg3-bonus-section.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+}
+
+.bg3-total-bonus {
+  font-size: 17.5px;
+  font-weight: 600;
+  color: #e8e2d6;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.95);
+  transition: opacity calc(0.2s * var(--animation-stretch, 1)) ease;
+}
+
+.bg3-cards-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 132px;
+}
+
+/* Authentic BG3 Bonus Card with Cusp Peak Top Border */
+.bg3-bonus-card {
+  position: relative;
+  width: 98px;
+  height: 128px;
+  padding: 10px 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(28, 22, 46, 0.95) 0%, rgba(18, 14, 28, 0.88) 65%, rgba(12, 10, 16, 0.0) 100%);
+  border-radius: 9px 9px 0 0;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform calc(0.26s * var(--animation-stretch, 1)) cubic-bezier(0.2, 0.9, 0.3, 1.15), opacity calc(0.25s * var(--animation-stretch, 1)) ease, filter calc(0.22s * var(--animation-stretch, 1)) ease;
+}
+
+.bg3-bonus-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9px 9px 0 0;
+  padding: 1.5px;
+  background: linear-gradient(180deg, #caa56e 0%, rgba(176, 138, 84, 0.55) 62%, transparent 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.bg3-bonus-card.primary-stat::before {
+  background: linear-gradient(180deg, #ffe39e 0%, rgba(224, 178, 98, 0.72) 68%, transparent 100%);
+}
+
+.bg3-bonus-card.primary-stat {
+  box-shadow: 0 -4px 16px rgba(235, 190, 98, 0.24);
+}
+
+/* Signature BG3 Top-Center Gothic Cusp Peak (^ on top border) */
+.bg3-card-cusp {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 8px;
+  pointer-events: none;
+}
+
+.bg3-bonus-card.fly-in {
+  animation: bg3CardFlyIn calc(0.44s * var(--animation-stretch, 1)) cubic-bezier(0.18, 0.88, 0.28, 1.08) forwards;
+}
+
+@keyframes bg3CardFlyIn {
+  0% {
+    opacity: 0;
+    transform: translateY(56px) scale(0.92);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-5px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.bg3-bonus-card.activating {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 0 24px rgba(255, 202, 92, 0.55);
+}
+
+.bg3-bonus-card.spent {
+  opacity: 0.48;
+  filter: saturate(0.55);
+}
+
+.bg3-card-val {
+  font-family: 'Cormorant Garamond', 'Palatino Linotype', Georgia, serif;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: 'lnum' 1, 'tnum' 1;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: #f2eee6;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95);
+}
+
+.bg3-card-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.bg3-card-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #b79c78;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95);
+}
+
+.bg3-card-name.emerald {
+  color: #2ad874;
+}
+
+/* Big Golden Popped Bonus Number (+3, +4, +2) on Card during Tally */
+.bg3-card-pop-num {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.4);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffe39c;
+  text-shadow: 0 0 18px rgba(255, 192, 68, 0.95), 0 3px 8px rgba(0, 0, 0, 0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform calc(0.24s * var(--animation-stretch, 1)) cubic-bezier(0.18, 0.9, 0.3, 1.25), opacity calc(0.2s * var(--animation-stretch, 1)) ease;
+}
+
+.bg3-card-pop-num.show {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+/* Add Bonus / Footer Controls */
+.bg3-add-bonus-bar {
+  margin-top: 14px;
+  width: 390px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.bg3-thin-divider {
+  width: 100%;
+  height: 8px;
+}
+
+.bg3-add-bonus-label {
+  margin: 4px 0 4px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #b2936e;
+  letter-spacing: 0.02em;
+  transition: color calc(0.18s * var(--animation-stretch, 1)) ease;
+}
+
+.bg3-add-bonus-bar:hover .bg3-add-bonus-label {
+  color: #ffe2b0;
+}
+
+/* Continue Button after Verdict */
+.bg3-continue-bar {
+  position: absolute;
+  top: 606px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity calc(0.35s * var(--animation-stretch, 1)) ease, transform calc(0.35s * var(--animation-stretch, 1)) ease;
+  cursor: pointer;
+}
+
+.bg3-continue-bar.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.bg3-continue-label {
+  margin: 6px 0 5px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #cfc8bc;
+  letter-spacing: 0.02em;
+}
+
+.bg3-continue-bar:hover .bg3-continue-label {
+  color: #fff0cf;
+}
+
+/* Bottom Controller Legend Bar */
+.bg3-footer-legend {
+  position: absolute;
+  bottom: 20px;
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.bg3-legend-btn {
+  background: none;
+  border: none;
+  color: #ebe6dc;
+  font-family: sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  opacity: 0.92;
+  transition: opacity calc(0.18s * var(--animation-stretch, 1)) ease, color calc(0.18s * var(--animation-stretch, 1)) ease;
+}
+
+.bg3-legend-btn:hover {
+  opacity: 1;
+  color: #ffe3a8;
+}
+
+.bg3-stick-pill {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ececf2;
+  color: #141418;
+  font-size: 10px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bg3-stick-pill::before {
+  content: '▾';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ececf2;
+  font-size: 9px;
+  line-height: 1;
+}
+
+.bg3-flying-bonus {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 29px;
+  font-weight: 700;
+  color: #ffe5a2;
+  text-shadow: 0 0 16px rgba(255, 194, 68, 0.98), 0 2px 6px rgba(0, 0, 0, 0.95);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+
+#btn-settings {
+  padding-inline: 6px;
+  font-size: 11px;
+}
+
+.bg3-settings {
+  position: fixed;
+  inset: auto max(12px, calc((100vw - 1020px) / 2)) 16px auto;
+  width: min(360px, calc(100vw - 24px));
+  max-height: min(565px, calc(100dvh - 55px));
+  margin: 0;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid #80694a;
+  border-radius: 12px;
+  background: #19151f;
+  color: #f0e6d8;
+  box-shadow: 0 5px 12px #0008;
+  font: 500 14px/1.35 system-ui, sans-serif;
+}
+
+.bg3-settings header,
+.bg3-setting-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 3px 12px;
+}
+
+.bg3-settings h2 {
+  font: 700 17px/1.25 Cinzel, Georgia, serif;
+}
+
+.bg3-settings button {
+  padding: 5px 8px;
+  border: 1px solid #826e53;
+  border-radius: 6px;
+  background: #29212e;
+  color: #fff0d8;
+  font: inherit;
+  cursor: pointer;
+}
+
+.bg3-settings button:hover {
+  background: #392c3d;
+}
+
+.bg3-settings :focus-visible {
+  outline: 2px solid #e4bb76;
+  outline-offset: 2px;
+}
+
+.bg3-settings fieldset {
+  min-width: 0;
+  margin-top: 13px;
+  padding: 7px 0 4px;
+  border: 0;
+  border-top: 1px solid #554633;
+}
+
+.bg3-settings legend {
+  padding-right: 9px;
+  color: #e4bb76;
+  font-weight: 700;
+}
+
+.bg3-setting-row + .bg3-setting-row {
+  margin-top: 8px;
+}
+
+.bg3-setting-row input,
+.bg3-setting-row small {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.bg3-setting-row input {
+  height: 20px;
+  accent-color: #e4bb76;
+}
+
+.bg3-setting-row output {
+  color: #e4bb76;
+  font-variant-numeric: tabular-nums;
+}
+
+.bg3-setting-row small {
+  color: #cec2b4;
+  font-size: 11px;
+}
+
+#btn-settings-reset {
+  margin-top: 12px;
+}
